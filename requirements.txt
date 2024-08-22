@@ -1,1 +1,17 @@
 streamlit
+gradio
+transformers
+torch
+pytesseract
+pdf2image
+pandas
+matplotlib
+requests
+reportlab
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+opencv-python-headless
+PyMuPDF
+cartopy
+pydot
