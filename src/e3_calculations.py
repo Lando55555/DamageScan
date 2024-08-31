@@ -1,5 +1,3 @@
-# src/e3_calculations.py
-
 import torch
 import pandas as pd
 from train_model import DryingTimeModel

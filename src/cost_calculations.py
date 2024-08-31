@@ -1,5 +1,3 @@
-# src/cost_calculations.py
-
 from llm_interface import query_llm_for_cost_calculation
 
 def calculate_costs(e3_dry_times):
