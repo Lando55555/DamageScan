@@ -1,0 +1,58 @@
+2361 - Residential Building Construction
+Involves construction and restoration of residential properties.
+
+2362 - Nonresidential Building Construction
+Focuses on commercial, industrial, and institutional buildings, which may require restoration services after water damage.
+
+2381 - Foundation, Structure, and Building Exterior Contractors
+Includes contractors involved in foundation repair, a crucial aspect of restoration after significant water damage.
+
+2382 - Building Equipment Contractors
+Contractors involved in plumbing, HVAC, and electrical systems installation and maintenance, which are often impacted by water damage.
+
+2389 - Other Specialty Trade Contractors
+Covers a range of specialized contractors, including those focused on finishing trades, which are necessary for complete water damage restoration.
+
+Remediation and Restoration Services
+
+5629 - Remediation Services
+Focuses specifically on environmental remediation services, including water damage restoration and cleanup.
+
+Real Estate and Property Management
+
+5311 - Lessors of Real Estate
+Entities that own and lease commercial or residential properties, often requiring restoration services to maintain or prepare properties for leasing.
+
+5313 - Activities Related to Real Estate
+Encompasses property management and maintenance, including the coordination of restoration services after water damage.
+
+Support and Emergency Services
+
+5617 - Services to Buildings and Dwellings
+Includes businesses offering cleaning, pest control, and general maintenance, which might extend to water damage cleanup.
+
+6242 - Emergency and Other Relief Services
+Organizations providing immediate assistance in disasters, including water damage restoration after floods or other water-related emergencies.
+
+Architectural and Engineering Services
+
+5413 - Architectural, Engineering, and Related Services
+
+Involves planning and overseeing restoration projects, ensuring compliance with building codes and safety standards post-restoration.
+
+Wholesale and Supply
+4238 - Machinery, Equipment, and Supplies Merchant Wholesalers
+Suppliers of equipment essential for water damage restoration, such as pumps, dehumidifiers, and cleaning agents.
+
+Industrial and Specialized Facilities
+
+3219 - Other Wood Product Manufacturing
+Although not directly related to restoration, businesses in this sector may require restoration services to protect their materials and operations after water damage.
+
+3323 - Architectural and Structural Metals Manufacturing
+Companies that might require water damage restoration to protect manufacturing facilities and equipment from water-related incidents.
+
+Additional Industry Considerations
+
+4842 - Specialized Freight (except Used Goods) Trucking, Local
+Transportation of heavy equipment and materials necessary for water restoration projects, especially in commercial settings.
