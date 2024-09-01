@@ -17,6 +17,9 @@ import fitz  # PyMuPDF
 from pytesseract import image_to_string
 from openai import OpenAI
 import torch
+from dotenv import load_dotenv
+
+load_dotenv() 
 
 # Load environment variables from config.json
 try:
