@@ -486,4 +486,5 @@ interface = gr.Interface(
 )
 
 # Run the Gradio app
-interface.launch(share=True)
+if __name__ == "__main__":
+    interface.launch()
