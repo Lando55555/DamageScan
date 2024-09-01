@@ -3,11 +3,13 @@
     "logging_level": "INFO",
     "report_output_path": "/output/[CURRENT_DATE].pdf",
     "ocr_language": "eng",
-    "openai_api_key": "sk-N3Q2MYSFrOmRR55r8uRBvu0sjYbFjD8HaKMV9UDFiaT3BlbkFJI8V54-tqV_gbUczXOQc6U3BgPx78RopOUz-7VAhRIA",  // Replace with your actual API key
-    "huggingface_api_key": "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",  // Replace with your actual API key
+    "hf_api_key = os.getenv('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')"
+    "openai_api_key = os.getenv('sk-N3Q2MYSFrOmRR55r8uRBvu0sjYbFjD8HaKMV9UDFiaT3BlbkFJI8V54-tqV_gbUczXOQc6U3BgPx78RopOUz-7VAhRIA')"
     "pdf_processing_options": {
         "use_ocr": true,  // Set to false if OCR is not needed
         "ocr_threshold": 0.5,  // Confidence threshold for OCR, if applicable
         "pdf_text_fallback": true  // Fallback to OCR if text extraction fails
     }
 }
+
+
