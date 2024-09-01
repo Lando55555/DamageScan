@@ -1,5 +1,10 @@
-torch
-gradio
 pandas
+numpy
+Pillow
+gradio
+transformers
+reportlab
+python-dotenv
+torch
 requests
 scikit-learn
