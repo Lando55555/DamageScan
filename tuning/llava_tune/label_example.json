@@ -1,0 +1,36 @@
+{
+    "interaction_id": "20240901120000",
+    "input_csv": {
+        "filename": "input_data.csv",
+        "num_rows": 100,
+        "num_columns": 5,
+        "columns": ["county", "state", "value1", "value2", "value3"]
+    },
+    "interaction": {
+        "timestamp": "2024-09-01T12:00:00Z",
+        "model_version": "TheBloke/CodeLlama-7B-Instruct-GGUF/codellama-7b-instruct.Q4_0.gguf",
+        "success": true,
+        "error": null
+    },
+    "api_calls": [
+        {
+            "api_name": "WeatherAPI.com",
+            "request": {
+                "county": "Los Angeles",
+                "state": "CA"
+            },
+            "response": {
+                "outside_temp": "75F",
+                "humidity": "60%"
+            },
+            "error": null
+        }
+    ],
+    "output_csv": {
+        "filename": "output_data.csv",
+        "num_rows": 100,
+        "num_columns": 7,
+        "columns": ["county", "state", "value1", "value2", "value3", "outside_temp", "humidity"]
+    },
+    "feedback": null
+}
