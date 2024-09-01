@@ -1,6 +1,6 @@
 ---
 license: apache-2.0
-title: damagescan_v1
+title: DamageScan
 sdk: gradio
 emoji: 🚀
 colorFrom: blue
@@ -9,23 +9,26 @@ short_description: A methodical approach to water damage restoration assessm
 sdk_version: 4.42.0
 ---
 
-# damagescan
+# DamageScan
 
 This is a Gradio app for calculating drying times and costs for water damage restoration.
 
-## Setup
+## How to Use
 
-1. Install dependencies: `pip install -r requirements.txt`
-2. Set up environment variables in `.env` file
-3. Run the app: `python app.py`
+1. **Upload CSV File**: The CSV file should contain data with specific columns required for analysis.
+2. **Upload Image Folder**: The folder should contain images referenced in the CSV file.
+3. **Generate Report**: The application will analyze the data and generate a PDF report.
 
-## Usage
+## Requirements
 
-Upload a CSV file with the required columns and click "Process and Calculate" to get drying times and cost estimates.
+- Python 3.11
+- Hugging Face API Key
 
-## Contributing
+## Running on Hugging Face Spaces
 
-Contributions are welcome! Please fork the repository and submit a pull request with your changes. Make sure to update the documentation if you add new features or change existing functionality.
+1. Set your Hugging Face API Key in the environment variables through the Hugging Face UI.
+2. Upload the `app.py`, `requirements.txt`, and `config.json` files to your Hugging Face Space.
+3. Run the space to interact with the application.
 
 ## License
 
