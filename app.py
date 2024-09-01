@@ -4,6 +4,225 @@ import numpy as np
 import logging
 from PIL import Image
 import gradio as gr
+from transformers import AutoTokenizer, AutoModelForCausalLM, ViTForImageClassification, ViTImageProcessor
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as ReportImage
+from reportlab.lib.units import inch
+from io import BytesIO
+import base64
+from datetime import datetime
+import json
+import fitz  # PyMuPDF
+from pytesseract import image_to_string
+from openai import OpenAI
+import torch
+
+# Load environment variables from config.json
+try:
+    with open('config.json') as config_file:
+        config = json.load(config_file)
+except FileNotFoundError:
+    raise FileNotFoundError("config.json file not found. Please ensure it exists in the current directory.")
+except json.JSONDecodeError:
+    raise ValueError("config.json is not a valid JSON file. Please check its contents.")
+
+hf_api_key = config['huggingface_api_key']
+openai_api_key = config['openai_api_key']
+
+# Replace [CURRENT_DATE] in the report output path
+current_date = datetime.now().strftime('%Y-%m-%d')
+report_output_path = config['report_output_path'].replace('[CURRENT_DATE]', current_date)
+
+# Ensure output directory exists
+output_dir = os.path.dirname(report_output_path)
+os.makedirs(output_dir, exist_ok=True)
+
+# Configure logging
+logging.basicConfig(filename='app.log', level=config['logging_level'], format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Initialize models
+try:
+    llama_tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf", use_auth_token=hf_api_key)
+    llama_model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-chat-hf", use_auth_token=hf_api_key)
+    
+    # Initialize vision model for image analysis
+    vision_model = ViTForImageClassification.from_pretrained("google/vit-base-patch16-224")
+    vision_processor = ViTImageProcessor.from_pretrained("google/vit-base-patch16-224")
+except Exception as e:
+    logging.error(f"Error initializing models: {e}")
+    raise
+
+# Initialize OpenAI client
+client = OpenAI(api_key=openai_api_key)
+
+# E3 Calculation Logic
+def calculate_e3(gpp_ambient, gpp_dew_point, gpp_wet_bulb, outdoor_temp, outdoor_humidity):
+    # Constants
+    A = 0.0012
+    B = 0.1540
+    C = 0.0650
+    D = 0.0309
+    
+    # Calculate E3
+    e3 = (A * gpp_ambient + B * gpp_dew_point + C * gpp_wet_bulb) / (D * outdoor_temp * outdoor_humidity)
+    
+    return e3
+
+def process_extracted_data_with_llama(extracted_text):
+    try:
+        inputs = llama_tokenizer(extracted_text, return_tensors="pt", max_length=512, truncation=True)
+        outputs = llama_model.generate(**inputs, max_length=1000)
+        processed_data = llama_tokenizer.decode(outputs[0], skip_special_tokens=True)
+        
+        logging.info("Processed extracted data with Llama-2 successfully.")
+        return processed_data
+    except Exception as e:
+        logging.error(f"Error processing extracted data with Llama-2: {e}")
+        raise
+
+def perform_image_analysis(image_path):
+    try:
+        image = Image.open(image_path)
+        inputs = vision_processor(images=image, return_tensors="pt")
+        outputs = vision_model(**inputs)
+        logits = outputs.logits
+        predicted_class_idx = logits.argmax(-1).item()
+        
+        # Get the label for the predicted class
+        predicted_label = vision_model.config.id2label[predicted_class_idx]
+        
+        # Use GPT-4 to generate a detailed analysis based on the image classification
+        prompt = f"Analyze water damage in a room based on the image classification '{predicted_label}'. Provide potential remedies and considerations for restoration."
+        
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an expert in water damage assessment and remediation."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300
+        )
+        
+        analysis = response.choices[0].message.content.strip()
+        
+        logging.info(f"Image analysis completed for {image_path}")
+        return analysis
+    except Exception as e:
+        logging.error(f"Error performing image analysis: {e}")
+        raise
+
+def calculate_room_specific_e3(csv_file_path, image_folder):
+    try:
+        df = pd.read_csv(csv_file_path)
+        
+        df['e3_dry_time'] = df.apply(lambda row: calculate_e3(
+            row['gpp_ambient'],
+            row['gpp_dew_point'],
+            row['gpp_wet_bulb'],
+            row['outdoor_temp'],
+            row['outdoor_humidity']
+        ), axis=1)
+        
+        # Perform image analysis for each room
+        df['image_analysis'] = df.apply(lambda row: perform_image_analysis(os.path.join(image_folder, row['Image_File_Name1'])) if pd.notna(row['Image_File_Name1']) else "No image available", axis=1)
+        
+        site_wide_e3 = df['e3_dry_time'].mean()
+        
+        logging.info(f"Room-specific E3 calculations and image analysis completed. Site-wide E3: {site_wide_e3}.")
+        return df, site_wide_e3
+    except Exception as e:
+        logging.error(f"Error processing room-specific E3 data and images: {e}")
+        raise
+
+def generate_report(report_data, output_path):
+    try:
+        doc = SimpleDocTemplate(output_path, pagesize=letter)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph("Water Damage Assessment Report", styles['Title']))
+        elements.append(Spacer(1, 12))
+
+        if report_data.get("include_text_analysis"):
+            elements.append(Paragraph("Text Analysis Results:", styles['Heading2']))
+            elements.append(Paragraph(str(report_data["text_analysis_output"]), styles['BodyText']))
+            elements.append(Spacer(1, 12))
+
+        if report_data.get("include_room_analysis"):
+            elements.append(Paragraph("Room-Specific Analysis:", styles['Heading2']))
+            for _, row in report_data["room_data"].iterrows():
+                elements.append(Paragraph(f"Room: {row['Room_Name']} (ID: {row['Room_ID']})", styles['Heading3']))
+                elements.append(Paragraph(f"E3 Dry Time: {row['e3_dry_time']:.2f}", styles['BodyText']))
+                elements.append(Paragraph(f"Image Analysis: {row['image_analysis']}", styles['BodyText']))
+                elements.append(Spacer(1, 12))
+
+        if report_data.get("include_e3_calculations"):
+            elements.append(Paragraph("E3 Calculations:", styles['Heading2']))
+            elements.append(Paragraph(f"Site-wide E3 Value: {report_data['e3_value']:.2f}", styles['BodyText']))
+            elements.append(Spacer(1, 12))
+
+        doc.build(elements)
+
+        with open(output_path, 'rb') as f:
+            pdf = f.read()
+
+        encoded_pdf = base64.b64encode(pdf).decode('utf-8')
+        pdf_data_uri = f"data:application/pdf;base64,{encoded_pdf}"
+
+        logging.info(f"Report generated successfully and saved to {output_path}.")
+        return pdf_data_uri
+    except Exception as e:
+        logging.error(f"Error generating report: {e}")
+        raise
+
+def integrate_workflow(csv_path, image_folder):
+    try:
+        room_data, site_e3 = calculate_room_specific_e3(csv_path, image_folder)
+        
+        report_data = {
+            "include_room_analysis": True,
+            "room_data": room_data,
+            "include_e3_calculations": True,
+            "e3_value": site_e3
+        }
+        report_uri = generate_report(report_data, report_output_path)
+        
+        return report_uri
+    except Exception as e:
+        logging.error(f"Error in workflow integration: {e}")
+        return f"An error occurred: {e}"
+
+# Gradio Interface
+def gradio_interface(csv_file, image_folder):
+    try:
+        report_uri = integrate_workflow(csv_file.name, image_folder)
+        return report_uri
+    except Exception as e:
+        logging.error(f"Error in Gradio interface: {e}")
+        return f"An error occurred: {e}"
+
+# Gradio UI
+interface = gr.Interface(
+    fn=gradio_interface,
+    inputs=[
+        gr.File(label="Upload CSV File"),
+        gr.Folder(label="Upload Image Folder")
+    ],
+    outputs=gr.HTML(label="Generated Report"),
+    title="Water Damage Remediation Application",
+    description="Upload your CSV and images to generate a detailed damage assessment report."
+)
+
+# Run the Gradio app
+if __name__ == "__main__":
+    interface.launch(share=True)
+import os
+import pandas as pd
+import numpy as np
+import logging
+from PIL import Image
+import gradio as gr
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
