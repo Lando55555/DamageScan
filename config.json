@@ -1,0 +1,5 @@
+{
+    "target_image_size": [224, 224],
+    "logging_level": "INFO",
+    "report_output_path": "/output/[CURRENT DATE].pdf"
+}
