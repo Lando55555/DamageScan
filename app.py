@@ -10,12 +10,27 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as ReportImage
 from io import BytesIO
 import base64
+from datetime import datetime
+import json
 
 # Load environment variable (assuming this has been set up in Hugging Face's UI)
 hf_api_key = os.getenv('HUGGINGFACE_API_KEY')
 
+# Load configuration
+with open('config.json') as config_file:
+    config = json.load(config_file)
+
+# Replace [CURRENT_DATE] in the report output path
+current_date = datetime.now().strftime('%Y-%m-%d')
+report_output_path = config['report_output_path'].replace('[CURRENT_DATE]', current_date)
+
+# Ensure output directory exists
+output_dir = os.path.dirname(report_output_path)
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
 # Configure logging
-logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='app.log', level=config['logging_level'], format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Initialize models once
 mistral_tokenizer = AutoTokenizer.from_pretrained("TheBloke/Mistral-7B-Instruct-v0.2-GGUF", use_auth_token=hf_api_key)
@@ -228,7 +243,7 @@ def gradio_interface(csv_file, image_folder):
             "include_e3_calculations": True,
             "e3_value": e3_value
         }
-        report_uri = generate_report(report_data, "damage_assessment_report.pdf")
+        report_uri = generate_report(report_data, report_output_path)
         
         return report_uri
     
