@@ -1,3 +1,27 @@
-__pycache__
-*.pyc
-.env
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Logs
+*.log
+
+# Reports
+reports/
+
+# Hugging Face Spaces
+.space
+
+# Configuration
+config.json
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
